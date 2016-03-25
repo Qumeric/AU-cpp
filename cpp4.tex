@@ -1,0 +1,141 @@
+\documentclass[a4paper,12pt]{article}
+\pagestyle{empty}
+\usepackage{color}
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+
+\usepackage{enumitem}
+\usepackage{etex}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{verbatim}
+\usepackage{minted}
+\usepackage{qtree}
+
+\DeclareMathOperator{\Ima}{Im}
+\DeclareMathOperator{\rk}{rk}
+
+\newtheorem{theorem}{Теорема}
+\newtheorem{definition}{Определение}
+\newtheorem{proposal}{Предложение}
+\newtheorem{lemma}{Лемма}
+\newtheorem{remark}{Замечание}
+\newtheorem{example}{Пример}
+
+\renewcommand{\O}{\mathcal{O}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\renewcommand{\C}{\mathbb{C}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\Ra}{\Rightarrow}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\Lra}{\Leftrightarrow}
+\newcommand{\Sum}{\sum \limits}
+\newcommand{\cc}{\mintinline{c++}}
+
+\def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}
+\let\endchangemargin=\endlist 
+
+\title{Конспект по C++}
+\author{Черепанов Валерий}
+\date{18 марта 2016 г.}
+
+\begin{document}
+\maketitle
+\part{Лекция -1}
+
+\section{Исправление некоторых неточностей}
+
+\subsection{reserve}
+Для вызова \cc{vector.reserve} не требуется вызвать какие-либо конструкторы (даже по умолчанию). Там используется placement new, то есть просто выделяется кусок памяти с помощью new и sizeof, а потом пишется \cc{new(adress) Obj} где \cc{adress} "--- это выделенная память.
+
+\subsection{string}
+Раньше string старались быть ленивыми и при создании старались сделать ссылку на уже созданное. Но плохо было то, что мы могли с легкостью получить линию при обращении с помощью \cc{[]} (строка копировалась в новую память, чтобы ее можно было модифицировать), да к тому же мы могли инвалидировать итератор.
+
+\subsection{Манипуляторы потоков}
+Манипуляторы вроде \cc{hex} как правило просто выставляют необходимый флаг с помощью \cc{setf}. Для их использования перегружен оператор \cc{<<}, он принимает поток и указатель на функцию.
+
+\section{STL}
+
+\subsection{Кое-что про map}
+Как уже говорилось, \cc{map} "--- это по сути \cc{set} пар. Оператор \cc{[]} у \cc{map} создает новый элемент (вызывая стандартный конструктор), если мы обратились по несуществующему ключу, потому что он не знает, хотим ли мы лишь получить значение по ключу или изменить его.
+
+\subsection{Кое-что про set}
+\begin{minted}{c++}
+class Person {
+    string name;
+    int age;
+
+    bool operator <(const Person& p) {
+        return name < p.name;
+    }
+}
+\end{minted}
+
+Если мы создадим \cc{set<Person>}, то элементы будут отсортированы по полю \cc{name}. Но мы можем захотеть сортировать по \cc{age}. Как этого добиться? На помощь приходят функторы!
+
+\begin{minted}{c++}
+struct by_age {
+    bool operator()(const Person& p1, const Person& p2) {
+        return p1.age < p2.age;
+    }
+}
+
+set<Person, by_age> s; // Используем так
+\end{minted}
+Внутри это устроено примерно так:
+\begin{minted}{c++}
+template<typename T, class comparator>
+class set {
+    insert(...) {
+        if (comparator()(n1, n2)) { ... } // Анонимный объект
+    }
+}
+\end{minted}
+Если мы не передаем в \cc{set} второй шаблонный параметер, то используется стандартный функтор \cc{less}. Он выглядит примерно так:
+\begin{minted}{c++}
+template<typename T>
+struct less {
+    bool operator()(const T& t1, const T& t2) {
+        return t1 < t2;
+    }
+}
+\end{minted}
+
+\begin{remark}
+    \cc{multimap} и \cc{multiset} "--- это тоже деревья, но обычно в узле хранится список элементов.
+\end{remark}
+
+\subsection{\cc{algorithm}}
+Итераторы "--- обертки над указателями. Их идея заключается в том, что алгоритм может работать с разными структурами данных, поддерживающими одинаковые операции (от структуры требуется лишь предоставить итераторы и методы работы с ними).
+
+Некоторые алгоритмы STL:
+\begin{enumerate}
+    \item \cc{swap(T& a, T& b), max(T& a, T& b)}
+    \item \cc{count[_if](It a, It b, const T& x)} \\
+        \cc{x} "--- значение в \cc{count}, функция или функтор в \cc{count_if} (можно считать сложные функции или экономить время на сравнение).
+    \item \cc{equal(It a, It b, It it) // Сравнивает [a, b) с [it, ...)} 
+    \item \cc{sort, min_element, nth_element, reverse, ...}
+\end{enumerate}
+
+\subsection{Чем хороши функторы?}
+Ну и чем же? % FIXME
+
+\subsection{Чем плохи итераторы?}
+У них слишком маленький базовый интерфейс (\cc{++, --, *, ->}), поэтому они ``из коробки'' не подходят для адекватной реализации многих алгоритмов (даже для бинарного поиска). Кроме того, мы не знаем тип объекта итератора, а он может нам понадобиться.
+Для решения этих проблем были придуманты \cc{iterator_traits}.
+
+Как часть решения первой проблемы алгоритмы обарачивают некоторые обращения к итераторам используя функции \cc{distance} и \cc{advance}.
+
+С точки зрения перемещения итераторы бывают:
+\begin{enumerate}
+    \item Forward
+    \item Bidirectional
+    \item Random Access
+\end{enumerate}
+
+
+% Тест: шаблоны, исключения, контейнеры
+\end{document}
