@@ -1,0 +1,87 @@
+\section{25 февраля 2016 г.}
+
+\subsection{Универсальная сортировка}
+
+\subsubsection*{Сортировка с стиле C}
+\begin{minted}{c++}
+{void nsort(void *array, size_t n, size_t elem_size, int (*fcmp)(void*, void*));}
+\end{minted}
+
+\subsubsection*{Сортировка с стиле C++}
+\begin{minted}{c++}
+// Interface
+class Comparable {
+    virtual int compare(const Coparable*) = 0 const;
+}
+
+// ** потому что мы не знаем размер наследников `Comparable`.
+void nsort(Comparable **c, size_t n);
+\end{minted}
+
+\subsubsection*{Поддержка встроенных типов}
+
+\begin{minted}{c++}
+template<typename T>
+int nsort(T* array, size_t size) {
+  if (array[i] < array[i+1])
+      T t = array[i]; // swap ...
+}
+
+// OK
+int a[100];
+nsort(0, 100); 
+
+Worker a[100]; // Требуется operator <, конструктор копий, operator =
+Worker **w; // Это работает?
+
+
+template<typename T, size_t size>
+class Array {
+  T array[size];
+  size_t getSize() {
+      return size;
+  }
+}
+
+Array<int, 100> a;
+f(a); // Как выглядит сигнатура f?
+\end{minted}
+
+\subsubsection*{Проблема с инстанцированными шаблонами}
+\begin{minted}{c++}
+template<class T, class Container>
+class Stack {
+    Container C;
+    void push(const T&);
+    T pop();
+};
+
+Stack<int, Vector<int>>;
+Stack<int, list<int>>;
+Stack<double, vector<int>>; // Пользователь ошибся
+s.push(3.5);
+double d = s.pop(); // Возвратит 3, но не факт, что будет хотя бы warning
+\end{minted}
+
+Решение:
+
+\begin{minted}{c++}
+// vector - значение по умолчанию
+template<class T, template <typename V> class Container=vector>
+stack<int, list>
+class Stack {
+    Container<T> c;
+    ...
+};
+\end{minted}
+
+\subsubsection*{Алтернативная реализация для определенных типов}
+\begin{minted}{c++}
+tempalte<class T>
+class MyArray {
+    T *array;
+};
+template<>
+class MyArray<bool> { // Используется только для bool
+};
+\end{minted}

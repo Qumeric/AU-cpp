@@ -1,68 +1,22 @@
-\documentclass[a4paper,12pt]{article}
-\pagestyle{empty}
-\usepackage{color}
-\usepackage[utf8]{inputenc}
-\usepackage[T2A]{fontenc}
-\usepackage[russian]{babel}
+\section{18 марта 2016 г.}
 
-\usepackage{enumitem}
-\usepackage{etex}
-\usepackage{amsmath}
-\usepackage{amsthm}
-\usepackage{amssymb}
-\usepackage{verbatim}
-\usepackage{minted}
-\usepackage{qtree}
+\subsection{Исправление некоторых неточностей}
 
-\DeclareMathOperator{\Ima}{Im}
-\DeclareMathOperator{\rk}{rk}
-
-\newtheorem{theorem}{Теорема}
-\newtheorem{definition}{Определение}
-\newtheorem{proposal}{Предложение}
-\newtheorem{lemma}{Лемма}
-\newtheorem{remark}{Замечание}
-\newtheorem{example}{Пример}
-
-\renewcommand{\O}{\mathcal{O}}
-\newcommand{\R}{\mathbb{R}}
-\newcommand{\Q}{\mathbb{Q}}
-\renewcommand{\C}{\mathbb{C}}
-\newcommand{\eps}{\varepsilon}
-\newcommand{\Ra}{\Rightarrow}
-\newcommand{\ra}{\rightarrow}
-\newcommand{\Lra}{\Leftrightarrow}
-\newcommand{\Sum}{\sum \limits}
-\newcommand{\cc}{\mintinline{c++}}
-
-\def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}
-\let\endchangemargin=\endlist 
-
-\title{Конспект по C++}
-\author{Черепанов Валерий}
-\date{18 марта 2016 г.}
-
-\begin{document}
-\maketitle
-\part{Лекция -1}
-
-\section{Исправление некоторых неточностей}
-
-\subsection{reserve}
+\subsubsection{reserve}
 Для вызова \cc{vector.reserve} не требуется вызвать какие-либо конструкторы (даже по умолчанию). Там используется placement new, то есть просто выделяется кусок памяти с помощью new и sizeof, а потом пишется \cc{new(adress) Obj} где \cc{adress} "--- это выделенная память.
 
-\subsection{string}
+\subsubsection{string}
 Раньше string старались быть ленивыми и при создании старались сделать ссылку на уже созданное. Но плохо было то, что мы могли с легкостью получить линию при обращении с помощью \cc{[]} (строка копировалась в новую память, чтобы ее можно было модифицировать), да к тому же мы могли инвалидировать итератор.
 
-\subsection{Манипуляторы потоков}
+\subsubsection{Манипуляторы потоков}
 Манипуляторы вроде \cc{hex} как правило просто выставляют необходимый флаг с помощью \cc{setf}. Для их использования перегружен оператор \cc{<<}, он принимает поток и указатель на функцию.
 
-\section{STL}
+\subsection{STL}
 
-\subsection{Кое-что про map}
+\subsubsection{Кое-что про map}
 Как уже говорилось, \cc{map} "--- это по сути \cc{set} пар. Оператор \cc{[]} у \cc{map} создает новый элемент (вызывая стандартный конструктор), если мы обратились по несуществующему ключу, потому что он не знает, хотим ли мы лишь получить значение по ключу или изменить его.
 
-\subsection{Кое-что про set}
+\subsubsection{Кое-что про set}
 \begin{minted}{c++}
 class Person {
     string name;
@@ -108,7 +62,7 @@ struct less {
     \cc{multimap} и \cc{multiset} "--- это тоже деревья, но обычно в узле хранится список элементов.
 \end{remark}
 
-\subsection{\cc{algorithm}}
+\subsubsection{\cc{algorithm}}
 Итераторы "--- обертки над указателями. Их идея заключается в том, что алгоритм может работать с разными структурами данных, поддерживающими одинаковые операции (от структуры требуется лишь предоставить итераторы и методы работы с ними).
 
 Некоторые алгоритмы STL:
@@ -120,10 +74,10 @@ struct less {
     \item \cc{sort, min_element, nth_element, reverse, ...}
 \end{enumerate}
 
-\subsection{Чем хороши функторы?}
+\subsubsection{Чем хороши функторы?}
 Ну и чем же? % FIXME
 
-\subsection{Чем плохи итераторы?}
+\subsubsection{Чем плохи итераторы?}
 У них слишком маленький базовый интерфейс (\cc{++, --, *, ->}), поэтому они ``из коробки'' не подходят для адекватной реализации многих алгоритмов (даже для бинарного поиска). Кроме того, мы не знаем тип объекта итератора, а он может нам понадобиться.
 Для решения этих проблем были придуманты \cc{iterator_traits}.
 
@@ -135,7 +89,3 @@ struct less {
     \item Bidirectional
     \item Random Access
 \end{enumerate}
-
-
-% Тест: шаблоны, исключения, контейнеры
-\end{document}

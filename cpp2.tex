@@ -1,0 +1,79 @@
+\section{3 марта 2016 г.}
+
+\subsection{Исключения}
+
+\begin{minted}{c++}
+    class BookEntry {
+        Image *myImage;
+        char *name;
+        BookEntry() {
+            name = new char[256];
+            myImage = new myImage;
+            myImage.load(...);
+        }
+        ~BookEntry() {
+            delete [] name;
+            delete myImage;
+        }
+    }
+\end{minted}
+Проблема "--- если конструктор получит exception, то деструктор не будет вызван.
+
+Варианты решения:
+\begin{enumerate}
+    \item RAII, то есть, например, \mint{c++}|shared_ptr<Image>|
+    \item 
+        \begin{minted}{c++}
+            NetworkConnection {
+                connect() {
+                    // работа с сетью, при ошибке Exception
+                }
+                ~NetworkConnection {
+                    logger log;
+                    log.print("Destructor NC");
+                }
+            }
+            void main() {
+                try {
+                    NetworkConnection nc;
+                    nc.connect(...);
+                } catch (...) {
+
+                }
+            }
+        \end{minted}
+        Неприятная ситуация "--- допустим, было вызвано какое-то исключение, оно попало в деструктор, а в деструкторе log.print тоже бросил исключение. Тогда исходное исключение потеряется. Поэтому в C++ запрещено бросать исключение в деструкторе. При появлении оно сразу летит в main и кладет программу.
+\end{enumerate}
+
+\subsubsection{Гарантия исключений}
+\begin{description}
+    \item[No except] просто не бросаем исключения.
+    \item[Base guarantee] даже при исключении класс остается валидным.
+    \item[Strong guarantee] если произошло исключение, то класс возвращается в исходное состояние. Обычно для этого делается копия изначального состояния класса.
+\end{description}
+
+\subsection{STL}
+
+\subsubsection{Конфликт заголовков}
+Некоторые заголовки C и C++ называются одинаково. Поэтому к названиям заголовков C в начале добавляется буква ``c''.
+
+\subsubsection{Конфликт имен}
+Чтобы не засорять лишний раз scope можно объявлять классы внутри классов.
+
+Развитие этой идеи "--- namespaces.
+
+\begin{remark}
+    По очевидным причинам не стоит писать using в заголовочных файлах.
+\end{remark}
+
+У ifstream есть 4 флага:
+\begin{description}
+    \item[good] Все ок.
+    \item[fail] Неправильный формат.
+    \item[bad]  Что-то не то с файлом.
+    \item[eof]  Конец файла
+\end{description}
+
+\begin{minted}{c++}
+    ifs.exception(std::ifstream::badbit | ...); // При выставлении флага вылетит exception
+\end{minted}

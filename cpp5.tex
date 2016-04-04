@@ -1,52 +1,6 @@
-\documentclass[a4paper,12pt]{article}
-\pagestyle{empty}
-\usepackage{color}
-\usepackage[utf8]{inputenc}
-\usepackage[T2A]{fontenc}
-\usepackage[russian]{babel}
+\section{25 марта 2016 г.}
 
-\usepackage{enumitem}
-\usepackage{etex}
-\usepackage{amsmath}
-\usepackage{amsthm}
-\usepackage{amssymb}
-\usepackage{verbatim}
-\usepackage{minted}
-\usepackage{qtree}
-
-\DeclareMathOperator{\Ima}{Im}
-\DeclareMathOperator{\rk}{rk}
-
-\newtheorem{theorem}{Теорема}
-\newtheorem{definition}{Определение}
-\newtheorem{proposal}{Предложение}
-\newtheorem{lemma}{Лемма}
-\newtheorem{remark}{Замечание}
-\newtheorem{example}{Пример}
-
-\renewcommand{\O}{\mathcal{O}}
-\newcommand{\R}{\mathbb{R}}
-\newcommand{\Q}{\mathbb{Q}}
-\renewcommand{\C}{\mathbb{C}}
-\newcommand{\eps}{\varepsilon}
-\newcommand{\Ra}{\Rightarrow}
-\newcommand{\ra}{\rightarrow}
-\newcommand{\Lra}{\Leftrightarrow}
-\newcommand{\Sum}{\sum \limits}
-\newcommand{\cc}{\mintinline{c++}}
-
-\def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}
-\let\endchangemargin=\endlist 
-
-\title{Конспект по C++}
-\author{Черепанов Валерий}
-\date{25 марта 2016 г.}
-
-\begin{document}
-\maketitle
-\part{Лекция 0}
-
-\section{Итераторы внутри STL}
+\subsection{Итераторы внутри STL}
 
 \begin{minted}{c++}
 template<class Iter>
@@ -58,7 +12,7 @@ sort(l.begin(), l.end());
 sort(v.begin(), v.end());
 \end{minted}
 
-\subsection*{Проблемы}
+\subsubsection*{Проблемы}
 \begin{enumerate}
     \item Знаем итератор, но не знаем, например, тип элементов вектора.
     \item Не знаем, что умеет итератор (например, может ли он в random access?). Поэтому большинство операций с итератором обарачиваем в библиотечные функции
@@ -68,7 +22,7 @@ distance(Iter& it1, Iter& it2);
     \end{minted}
 \end{enumerate}
 
-\subsection*{Решения}
+\subsubsection*{Решения}
 Как решена проблемы в STL?
 \begin{minted}{c++}
 template<class T>
@@ -112,7 +66,7 @@ void advance_impl(Iter int n, int n, bidi_iterator it) {
 \end{minted}
 Используется полиморфизм времени компиляции. % FIXME what?
 
-\section{Iterator traits}
+\subsection{Iterator traits}
 Хотим делать примерно то же самое, но не для итераторов, а для указателей.
 Проблема:
 \begin{minted}{c++}
@@ -143,5 +97,3 @@ class iter_type {
 };
 \end{minted}
 \cc{Iter:iterator_category} $\ra$ \cc{iter_traits<Iter>::iterator_category}
-
-\end{document}
