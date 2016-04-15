@@ -1,0 +1,141 @@
+\section{15 апреля 2016 г.}
+
+\subsection{C++11}
+
+\subsubsection{Избавляемся от define}
+
+\paragraph{nullptr}
+Раньше было так:
+\begin{minted}{c++}
+// Было
+int *x = 0;
+int *p1 = NULL; // #define NULL (void*)0;
+
+void f(long l) { }
+void f(char *s) { }
+
+int main() {
+  f(0L); // OK
+  char s[] = "Hello";
+  f(s); // OK
+  f(NULL);  // Ambiguity
+  f(0);     // Ambiguity
+}
+\end{minted}
+В C++ эту проблему постарались решить с помощью нового ключевого слова \cc{nullptr}. Такой ``указатель'' неявно кприводиться к указателю любого другого типа.
+
+\paragraph{static\_assert}
+Раньше был только обычный \cc{assert}.
+\begin{minted}{c++}
+  // Если boolvar = false, то runtime error.
+  assert(boolvar);
+\end{minted}
+Теперь появился \cc{static_assert}, который выполняется на стадии компиляции.
+\begin{minted}{c++}
+  // Второй аргумент - сообщение об ошибке
+  static_assert(sizeof(int)>=4, "This program could not work");
+
+  template<typename T, size_t size>
+  class static_array {
+    T array[size];
+    static_array() {
+      static_assert(size > 0, "Empty arrays are prohibited");
+    }
+  }
+  static_array<int, 100> a; // OK
+  static_array<int, 0> b;   // Error
+\end{minted}
+
+\paragraph{Type alias}
+Раньше:
+\begin{minted}{c++}
+// Так можно
+typedef map<string, list<int>> ml_t;
+f(ml_t a);
+
+// А вот так уже нет
+typedef map<string, list<T>> ml_t;
+f(ml_t<int> a);
+\end{minted}
+C++11 спешить на помощь!
+\begin{minted}{c++}
+template<typename T>
+using mt_t=map<string, list<T>>
+\end{minted}
+
+\paragraph{constexpr}
+Было:
+\begin{minted}{c++}
+size_t square(int x) a {
+  return x*x;
+}
+const int sz = cl;
+int a[sz]; // OK
+static_array<int, sz> sa; // OK
+int a[square(3)]; // Error
+static_array<int, square(3)> sa; // Тоже error
+\end{minted}
+Решение:
+\begin{minted}{c++}
+// constexpr говорит, что функция при определенных
+// условиях может использоваться в константных выражениях
+constexpr size_t square(int x) a {
+  return x*x;
+}
+\end{minted}
+
+\subsubsection{Декораторы}
+
+\paragraph{default и delete}
+\begin{minted}{c++}
+class T {
+  int v = 0; // Такая инициализация - тоже фича C++11
+public:
+  // default говорит, что в любом случае нужно создать метод по умолчанию
+  T() = default;
+  // delete говорит, что не стоит создавать метод по-умолчанию
+  T& operator= (const T&) = delete;
+  T(const T&) = delete;
+}
+\end{minted}
+
+\paragraph{override}
+Проблема:
+\begin{minted}{c++}
+class Base {
+public:
+  virtual void f(int) const;
+  virtual int g() const;
+  void n(int) const;
+}
+
+class Derived:public Base {
+  void f(int) const;
+  virtual int g(int); // Забыли const
+  void n(int) const;
+}
+
+const Base *b = new Derived();
+b->f()
+b->g(); // Base::g(), так как сигнатуры не совпадают
+b->n();
+\end{minted}
+Решение "--- \cc{override}. Это слово говорит компилятору, что функция что-то перекрывает. ``Под капотом'' компилятор просто проверяет, есть ли такая виртуальная функция в базовом классе.
+\begin{minted}{c++}
+class Derived:public Base {
+  void f(int) const override; // OK
+  virtual int g(int) override; // Error
+  void n(int) const override; // OK
+}
+\end{minted}
+
+\paragraph{Конструкторы}
+\begin{minted}{c++}
+class MyNumber {
+  MyNumber(char* s): A(atoi(s)) { } // Вызываем один конструктор из другого
+  MyNumber(int i) { };
+}
+
+MyNumber("64");
+MyNumber(64);
+\end{minted}

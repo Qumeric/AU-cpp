@@ -1,0 +1,99 @@
+\section{08 апреля 2016 г.}
+
+\subsection{Преобразования типов}
+
+\begin{minted}{c++}
+double dl = (double)3/4;
+char *d = new double[100];
+char *cd = (char)d; // Хотим вызвать send, поэтому cast
+
+// В C часто использовали void*, char*.
+int send(char *c, size_t size);
+void *malloc(...);
+sort(void *a, size_t n);
+\end{minted}
+
+\subsubsection*{Новые возможности C++}
+
+  \cc{const_cast}
+
+  Убираем и добавляем константность.
+
+  \begin{minted}{c++}
+void old_c_func(char *s);
+f(const char *s) {
+  old_c_func(s); // Не скомпилируется
+
+  char *c1 = const_cast<char*>(s); // Аналог (char *)s из C
+  old_c_func(c1);
+}
+
+// Проблема: похожие константные и не константные методы
+class Vector {
+  T& operator[](int id) {
+    return const_cast<const Vector&>(*this)[id]; // Или не так?
+    % FIXME (may be wrong)
+  }
+  const T& operator[](int id) const {
+
+  }
+}
+
+// Просто примеры с const
+void foo(string &s); // Если напишем const string, то все будет ок
+foo("English"); // Не скомпилируется. Проблема в том, что вы передаем ссылку на временный объект
+
+  \end{minted}
+  \cc{static_cast}
+
+  Обычное приведение в духе C.
+
+ % \Tree [[B C D E].A]
+  \begin{minted}{c++}
+double d = static_cast<double>(3);
+A *xa;
+B *b = new B();
+a = static_cast<A*>(b); // B к A
+C *c = new c();
+C *c1 = static_cast<C*>(a); // A (на самом деле B) к С. Компилятор ничего не понимает
+
+  \end{minted}
+  \cc{reinterpret_cast}
+
+  Говорит компилятору рассматривать что-то одного типа как что-то другого типа. Не генерирует какой-либо ассемблерный код. \\\\
+    \cc{dynamic_cast}
+
+    Выполняется только в рантайме. Провряет пристальнее, чем \cc{static_cast}.
+  \begin{minted}{c++}
+A* a;
+B *b = new B();
+// Если кажется, что можно сделать исходя из иерархии, то ок
+a = static_cast<A*>(b);
+// Хранит указатель на массив виртуальных функций и понимает больше
+C *c = dynamic_cast<C*>(a); // исключение
+
+Vector<A*> v;
+v.add(new B());
+v.add(new C());
+v.add(new D());
+v.add(new E()); // Есть какой-то метод g, которого нет у A, хотим вызывать его вместо g
+for(int i = 0; i < n; i++) {
+  v[i]->f();
+}
+
+#include <typeinfo>
+E *pe;
+if(pe=dynamic_cast<E*>(v[i])) { // Проверим, E ли это
+  pe->g();
+} else {
+  v[i]->f();
+}
+  \end{minted}
+
+\paragraph*{\cc{typeid}}
+Выполняется в рантайме, действует как \cc{dynamic_cast}
+\begin{minted}{c++}
+type_info ti = typeid(*c);
+ti.name(); // "MyClass"
+\end{minted}
+
