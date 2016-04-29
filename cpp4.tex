@@ -75,7 +75,20 @@ struct less {
 \end{enumerate}
 
 \subsubsection{Чем хороши функторы?}
-Ну и чем же? % FIXME
+Тем, что можно передавать параметры!
+\begin{minted}{c++}
+class Finder {
+private:
+  int what;
+public:
+  Finder(int w):what(w){}
+  bool operator()(int n) {
+    return n > what;
+  }
+};
+// v - какой-то контейнер
+find_if(begin(v), end(v), Finder(473));
+\end{minted}
 
 \subsubsection{Чем плохи итераторы?}
 У них слишком маленький базовый интерфейс (\cc{++, --, *, ->}), поэтому они ``из коробки'' не подходят для адекватной реализации многих алгоритмов (даже для бинарного поиска). Кроме того, мы не знаем тип объекта итератора, а он может нам понадобиться.

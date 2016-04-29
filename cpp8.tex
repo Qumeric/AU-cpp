@@ -1,0 +1,47 @@
+\section{22 апреля 2016 г.}
+
+\subsubsection{auto и decltype}
+\begin{minted}{c++}
+vector<int>::iterator it = vec.begin();
+auto it = vec.begin(); // автоматический вывод типа
+
+int a;
+int& ref = a;
+auto b = ref; // int, & снимается
+auto& c = ref; // int
+
+template<typename T, typename V>
+void multiply(vector<T>& a, vector<T>& b) {
+  auto tmp = a[i]*b[i]; // Error. Не знаем, какой будет тип
+}
+
+template<class T, class V>
+declype(T(0)*V(0)) multiply(const T& a, const V& b) {
+  decltype(a*b) product_type; // Такой же тип, как у operator*(T, V);
+  product_type tmp = a*b;
+  return tmp;
+}
+
+template<class T, class V>
+// Просто auto нас не поймет (хотя в C++14 может)
+auto multiply(const T& a, const V& b) -> decltype(a*b) {
+  return a*b;
+}
+\end{minted}
+
+\subsection{move семантика}
+Используется, если класс(структура имеет указатели). В таком случае, если мы хотим ``переместить'' класс, то можно лишь переместить их, а не копировать что-либо.
+В $C++$ все выражения делятся на lvalue и rvalue. Грубо говоря, lvalue "--- то, что можно писать слева от ``$=$'', а rvalue "--- все остальное.
+\begin{minted}{c++}
+template<class T>
+// Будут выполнены лишние действия в виде копирований (например, из a в tmp)
+void swap(T& a, T& b) {
+  T tmp = a;
+  a = b;
+  b = tmp;
+}
+\end{minted}
+Решение: конструктор и оператор присванивания.
+\begin{minted}{c++}
+  // %FIXME UNDONE
+\end{minted}

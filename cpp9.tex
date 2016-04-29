@@ -1,0 +1,94 @@
+\section{15 апреля 2016 г.}
+
+\subsubsection{Lambda функции}
+\begin{minted}{c++}
+find_if(Iterator first,
+        Iterator last,
+        Functor operator);
+\end{minted}
+Предположим, что мы хотим найти первое положительное значение в контейнере. Пишем так:
+\begin{minted}{c++}
+struct PositiveFinder {
+  bool operator()(int v) { // Для простоты int
+    return v > 0;
+  }
+};
+
+vector<int> v(100);
+auto f = find_if(begin(v), end(v), PositiveFinder());
+\end{minted}
+Что здесь плохо? Громоздкий синтаксис, для каждой цели нужно писать свой функтор (ну или хотя бы функцию). Кроме того, это засоряет namespace.
+
+В $C++11$ предложено такое решение с использование лямбд(анонимных классов).
+\begin{minted}{c++}
+auto f = find_if(begin(v), end(v), [](int n) {return n > 0});
+// Можно и с параметрами
+f = find_if(begin(v), end(v), [threshold](int n){return n > threshhold});
+// Варианты
+[=] // Все локальные текущего scope передаются по значению
+[&] // Тоже самое, но по ссылке
+[=var1, &var2] // Одно по значению, одно по ссылке (= можно не писать)
+\end{minted}
+Захват переменных (\cc{[]}) называется замыканием (closure).
+
+\subsection{vardiadic templates(и functions)}
+Это есть даже в $C$.
+\begin{minted}{c++}
+// Все делается написанием одной-единственной функции
+printf("%s, %d", s, d);
+printf("%d", d);
+
+// Здесь определены макросы va_start, va_arg, va_end
+#include<stdarg.h>
+
+int min(int n, ...) { // Произвольное число аргументов
+  va_list args; // Список аргументов
+  va_start(args, n); // Аргументы начинаются после n
+  int  = 0, m = INF;
+  while(i++ < n) { // n - число аргументов
+    int arg = va_arg(args, int); // Извлекаем очередной аргумент типа int
+    m = min1(m, arg);
+  }
+  // Если аргументы выделяются с помощью malloc, то надо очистить память
+  va_end(args);
+  return m;
+}
+\end{minted}
+Как это устроено внутри? Может быть много вариантов, один из ниx такой:
+\begin{minted}{c++}
+  typedef unsigned char* va_list;
+  // va_start делает примерно это:
+  args = &n + sizeof(n);
+  // va_arg делает примерно это: %FIXME подумать
+  T var = T(*args);
+  args += sizeof(T);
+\end{minted}
+
+В C++ развили эту идею.
+\begin{minted}{c++}
+struct Fact {
+  static const int val = n*Fact<n-1>::val;
+};
+
+template<>
+struct Fact<0> {
+  static const int val = 1;
+};
+
+int main() {
+  int v = Fact<5>::val; // Вычисляется во время компиляции
+}
+\end{minted}
+
+\begin{minted}{c++}
+template<typename T, typename ...Args>
+
+T min(T n, Args ...rest) {
+  return min(n, min(rest...));
+}
+template<typename T>
+T min(T a, T b) {
+  if (a < b) return a;
+  return b;
+}
+\end{minted}
