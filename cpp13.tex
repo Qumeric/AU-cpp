@@ -1,0 +1,113 @@
+\section{20 мая}
+
+\subsection{Conditional variables}
+
+Код с прошлой лекции на новый лад.
+\begin{minted}{c++}
+int get() {
+  m.lock();
+  while(q.empty()) {
+    m.unlock();
+    m.lock();
+  }
+  int s = q.pop();
+  m.unlock();
+  return s;
+}
+
+void put(int s) {
+  m.lock();
+  while(q.size() == capacity()) {
+    m.unlock();
+    m.lock();
+  }
+  q.push(s);
+  m.unlock();
+}
+\end{minted}
+
+Проблема данного когда в том, что ждать разблокировки таким образом (в цикле) неэффективно. Кроме того, он слегка громоздок.
+На помощь приходят conditional variables.
+\begin{minted}{c++}
+void put(int s) {
+  // Совмещает возможности mutex и lock_guard
+  unique_lock<mutex> l(m);
+  // Спим, пока не разбудят, проверяем условие
+  // Если нет, то спим дальше, иначе работаем
+  not_full.wait(l, [this]{return g.size() != capacity});
+  q.push();
+  // Разбудить один consumer
+  not_empty.notify_one();
+}
+
+int get() {
+  unique_lock<mutex> l(m);
+  not_empty.wait(l, [this] { return !g.empty() });
+  int s = q.pop();
+  not_full.notify_one();
+}
+\end{minted}
+
+wait внутри устроен примерно так:
+\begin{minted}{c++}
+while(!condition) {
+  wait(l);
+}
+\end{minted}
+
+% Вопрос к экзамену: почему именно так?
+
+\subsection{Initializer list}
+Можно инициализировать большинство структур данных с помощью фигурных скобок.
+Для того, чтобы добавить поддержку в свой класс, делаем так:
+
+\begin{minted}{c++}
+vector::vector(initializer_list<T>& l) {
+initializer_list<T>::iterator it = l.begin();
+  T t = *it;
+  // Тут создаем объект
+}
+
+\end{minted}
+Компилятор сначала создает массив в статической памяти, затем вызывает метод.
+
+\subsection{unordered\_set, unordered\_map}
+
+\begin{minted}{c++}
+template<>
+struct hash<PhoneEntry> {
+  size_t operator()(const PhoneEntry& o) {
+    return hash<int>()(num) + hash<string>()(s);
+  }
+};
+
+class PhoneEntry {
+  string s;
+  int num;
+  bool operator==(consta PhoneEntry& o);
+  friend class std::hash<PhoneEntry>;
+};
+\end{minted}
+
+\subsection{Множественное наследование}
+
+Суть состоит в том, что можно наследоваться от нескольких классов одновременно. 
+
+Внимание! Существует распространенное мнения, что данную возможность вообще никогда не стоит использовать.
+
+Существует ромбовидное наследование. В этом случае объекты не всегда можно неявно привести к типу какого-либо предка. В таких неоднозначных местах нужно использовать \cc{static_cast}, либо \textbf{виртуальное наследование}.
+
+\begin{minted}{c++}
+struct A {
+    int foo() { return 1; }
+};
+class B: public virtual A {};
+class C : public virtual A {};
+class D : public B, public C {};
+int main () {
+    D d;
+    cout << d.foo();
+}
+\end{minted}
+
+Если убрать ключевое слово virtual, то метод \cc{foo()} не может быть определён однозначно и в результате не будет доступен как объект класса D и код не скомпилируется.
