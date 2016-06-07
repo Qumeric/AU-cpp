@@ -1,0 +1,54 @@
+\section{27 мая}
+
+\subsection{SFINAE}
+
+\begin{minted}{c++}
+  vector<int> v = {1, 2, 3, 4};
+  int n;
+  show(a);  // show(int a); если нет итератора
+  show(v);  // show(vector<T> i); если есть итератор
+\end{minted}
+
+\begin{minted}{c++}
+template<typename T>
+struct has_iterator {
+  template<typename U>
+  static char test(typename U::iterator* x);
+  template<typename U>
+  static long test(U* x);
+  static const value=sizeof(test<T>(0)==1); // test???
+};
+
+
+bool b = has_iterator<int>::value;
+\end{minted}
+Не вызывает ошибку, если подстановка шаблонного параметра происходит хотя бы в 1 методе
+
+\begin{minted}{c++}
+#include<type_traits>
+
+template<class T>
+typename enable_if<!has_iterator<T>::value, void>::type;
+show (const T& x) {
+  cout << x << endl;
+}
+
+template<class T>
+typename enable_if<has_iterator<T>::value, void>::type
+show(const T& x) {
+  for(auto& i: x) {
+    cout << i << endl;
+  }
+}
+\end{minted}
+
+Реализация \cc{enable_if}:
+\begin{minted}{c++}
+template<bool, typename T>
+struct enable_if {
+};
+template<typename T>
+struct enable_if<true, T> {
+  typedef T type;
+};
+\end{minted}
